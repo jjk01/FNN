@@ -81,7 +81,8 @@ int main(){
     N.addDense(300);
     N.addActivation(ActivationType::sigmoid);
     N.addDense(10);
-    N.addActivation(ActivationType::sigmoid);
+    //N.addActivation(ActivationType::sigmoid);
+
 
     MatrixXf Xtrain, Xtest;
     RowVectorXi Ytrain, Ytest;
@@ -92,7 +93,7 @@ int main(){
     MatrixXf Z = N.propagate(Xtest);
     std::cout << "start accuracy = " << accuracy(Z,Ytest) << "\n\n";
 
-    Trainer<MatrixXf, RowVectorXi> T(&N,LossType::quadratic,20,30,1.0);
+    Trainer T(&N,LossType::cross_entropy_softmax,150,30,0.1);
 
     double start =  std::clock();
     T.train(Xtrain,Ytrain);
