@@ -15,7 +15,7 @@ neural_net::neural_net(const neural_net & arg) {
     Layer * previous = nullptr;
 
     for (unsigned long n = 0; n < layers.size(); ++n) {
-        layers[n] = std::move(arg.layers[n] -> clone(previous));
+        layers[n] = arg.layers[n] -> clone(previous);
         previous = layers[n].get();
     }
 }
@@ -30,7 +30,7 @@ neural_net & neural_net::operator=(const neural_net & arg) {
         layers.resize(arg.layers.size());
         Layer * previous = nullptr;
         for (unsigned long n = 0; n < layers.size(); ++n) {
-            layers[n] = std::move(arg.layers[n] -> clone(previous));
+            layers[n] = arg.layers[n] -> clone(previous);
             previous = layers[n].get();
         }
     }

@@ -10,12 +10,15 @@
 template <class Tin, class Tout>
 class iterateBatch {
 public:
+    iterateBatch() = default;
     iterateBatch(neural_net * , LossType, double rate);
     float operator()(const MatrixBase<Tin> & x, const MatrixBase<Tout> & y, unsigned start, unsigned batch_size);
 
 private:
     MatrixXf forwardPropagate(const MatrixXf & xdata);
     void backPropagate(const MatrixXf & yerror);
+
+    void batchNormalise(MatrixXf & xdata);
 
     std::vector<std::unique_ptr<Gradient>> layers;
     std::unique_ptr<Loss> loss = nullptr;
@@ -30,12 +33,13 @@ private:
 template <class Tin, class Tout>
 class Trainer {
 public:
-    Trainer(neural_net * , LossType, unsigned epochs = 25, unsigned batch_size = 32, double rate = -0.1);
+    Trainer() = default;
+    Trainer(neural_net * , LossType, unsigned epochs = 25, unsigned batch_size = 32, double rate = 0.1);
     void train(const MatrixBase<Tin> & xdata, const MatrixBase<Tout> & ydata);
 
 private:
     void shuffle(MatrixBase<Tin> & xdata, MatrixBase<Tout> & ydata);
-    void processEpoch(const MatrixBase<Tin> & xdata, const MatrixBase<Tout> & ydata);
+    float processEpoch(const MatrixBase<Tin> & xdata, const MatrixBase<Tout> & ydata);
 
     PermutationMatrix<Dynamic,Dynamic> P;
     iterateBatch<Tin,Tout> iterate;
@@ -46,10 +50,11 @@ private:
 
 
 
+
 /*=================================================================================================================*/
 /*=================================================================================================================*/
 
-/* Template implementations */
+/* Template Instantiations */
 
 template <class Tin, class Tout>
 Trainer<Tin,Tout>::Trainer(neural_net * net, LossType loss, unsigned epochs, unsigned batch_size, double rate):
@@ -61,10 +66,25 @@ template <class Tin, class Tout>
 void Trainer<Tin,Tout>::train(const MatrixBase<Tin>& _xdata, const MatrixBase<Tout>& _ydata) {
     Tin  xdata(_xdata);
     Tout ydata(_ydata);
+
+    float loss;
+    std::string to_write;
+
     for (long n = 0; n < m_epochs; ++n){
+
         shuffle(xdata,ydata);
-        processEpoch(xdata,ydata);
+        loss = processEpoch(xdata,ydata);
+
+        long percentage = (100*n)/m_epochs;
+        long barLength = percentage/2;
+        std::string bar = std::string(barLength, '=') + ">" + std::string(50 - barLength, '_') ;
+        std::ostringstream stringStream;
+        stringStream << " Progress |" << bar + "| " << std::to_string(percentage) << " %, loss = " << loss;
+        to_write = stringStream.str();
+        std::cout << to_write << "\r" << std::flush;
     }
+    std::cout << std::string(to_write.size(), ' ') << "\r";
+    std::cout << "Progress |" << std::string(50, '=') + ">| 100 %\n\n";
 }
 
 
@@ -81,7 +101,7 @@ void Trainer<Tin,Tout>::shuffle(MatrixBase<Tin> & xdata, MatrixBase<Tout> & ydat
 
 
 template <class Tin, class Tout>
-void Trainer<Tin,Tout>::processEpoch(const MatrixBase<Tin>& xdata, const MatrixBase<Tout>& ydata){
+float Trainer<Tin,Tout>::processEpoch(const MatrixBase<Tin>& xdata, const MatrixBase<Tout>& ydata){
 
     unsigned batches = xdata.cols()/m_batch_size;
     float loss = 0;
@@ -90,7 +110,7 @@ void Trainer<Tin,Tout>::processEpoch(const MatrixBase<Tin>& xdata, const MatrixB
     unsigned remaining = xdata.cols()%m_batch_size;
     if (remaining != 0) loss += iterate(xdata,ydata, m_batch_size*batches, remaining);
 
-    std::cout << "Loss: " << loss/double(batches) << "\n";
+    return loss/float(batches);
 }
 
 
@@ -123,6 +143,9 @@ iterateBatch<Tin,Tout>::iterateBatch(neural_net * net, LossType _loss, double ra
         case LossType::quadratic:
             loss.reset(new quadratic());
             break;
+        case LossType::cross_entropy_softmax:
+            loss.reset(new cross_entropy_softmax());
+            break;
     }
 }
 
@@ -139,6 +162,15 @@ float iterateBatch<Tin,Tout>::operator()(const MatrixBase<Tin> & x, const Matrix
     backPropagate(error);
 
     return loss -> loss(Z,Y);
+}
+
+
+template <class Tin, class Tout>
+void iterateBatch<Tin,Tout>::batchNormalise(MatrixXf & xdata) {
+    float mu = xdata.mean();
+    xdata = xdata.array() - mu;
+    float std = xdata.norm()/std::sqrt(xdata.size()-1);
+    xdata /= std;
 }
 
 
@@ -163,6 +195,7 @@ void iterateBatch<Tin,Tout>::backPropagate(const MatrixXf & yerror) {
 
     }
 }
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

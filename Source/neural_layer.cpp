@@ -2,7 +2,7 @@
 #include "activation_functions.h"
 #include "exception.h"
 #include <cmath>
-
+#include <random>
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,7 +64,18 @@ long ActivationLayer::outputSize() const {
 
 
 DenseLayer::DenseLayer(long n_in, long n_out, Layer * _previous): Layer(_previous),
-    w(MatrixXf::Random(n_out,n_in)/std::sqrt(n_in)), b(VectorXf::Random(n_out)){}
+    w(MatrixXf::Zero(n_out,n_in)), b(VectorXf::Zero(n_out)){
+
+    std::default_random_engine generator;
+    std::normal_distribution<double> weight_dist(0,1/sqrt(n_in)),bias_dist(0,1) ;
+
+    for (long r = 0; r < n_out; ++r){
+        b(r) = bias_dist(generator);
+        for (long c = 0; c < n_in; ++c){
+            w(r,c) = weight_dist(generator);
+        }
+    }
+}
 
 DenseLayer::DenseLayer(const DenseLayer & arg, Layer * prev): Layer(prev) {
     w = arg.w;

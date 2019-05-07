@@ -1,6 +1,6 @@
 #include "loss.h"
 #include <iostream>
-
+#include "activation_functions.h"
 
 
 
@@ -31,45 +31,38 @@ float quadratic::loss (const MatrixXf & prediction, const RowVectorXi & classInd
 }
 
 
-/*
-MatrixXf cross_entropy_with_softmax::error(const MatrixXf & y, const MatrixXf & y_true) {
-    return y_true-y;
+
+MatrixXf cross_entropy_softmax::error(const MatrixXf & prediction, const MatrixXf    & target) {
+    MatrixXf Y = softmax_function(prediction);
+    return Y-target;
 }
 
 
-float cross_entropy_with_softmax::loss(const MatrixXf & y, const MatrixXf & y_true) {
-    MatrixXf x = (y.array() - y.maxCoeff()).matrix();
-    MatrixXf Y = (-x).array().exp().matrix();
-    VectorXf norm = Y.colwise().sum().cwiseInverse();
-    Y *= norm.asDiagonal();
+float cross_entropy_softmax::loss (const MatrixXf & prediction, const MatrixXf    & target) {
+    MatrixXf Y = softmax_function(prediction);
     Y = Y.array().log().matrix();
-    float err = -(y_true*Y).mean();
+    float err = -(Y.cwiseProduct(target)).mean();
+    err *= Y.rows();
     return err;
 }
 
 
 
-
-
-MatrixXf cross_entropy_with_softmax_logits::error(const MatrixXf & y, const MatrixXf & logit) {
-    MatrixXf err = -y;
-    MatrixXi index = logit.cast<int>();
-    for (unsigned n = 0; n < err.cols(); ++n) err(index(n),n) += 1;
-    return err;
+MatrixXf cross_entropy_softmax::error(const MatrixXf & prediction, const RowVectorXi    & classIndex) {
+    MatrixXf grad = softmax_function(prediction);
+    for (unsigned n = 0; n < classIndex.size(); ++n) grad(classIndex(n),n) -= 1;
+    grad /= classIndex.size();
+    return grad;
 }
 
 
-float cross_entropy_with_softmax_logits::loss(const MatrixXf & y, const MatrixXf & logit) {
-    MatrixXf x = (y.array() - y.maxCoeff()).matrix();
-    MatrixXf Y = (-x).array().exp().matrix();
-    VectorXf norm = Y.colwise().sum().cwiseInverse();
-    Y *= norm.asDiagonal();
-    MatrixXi index = logit.cast<int>();
 
+float cross_entropy_softmax::loss (const MatrixXf & prediction, const RowVectorXi    & classIndex) {
+    MatrixXf grad = softmax_function(prediction);
     float err = 0;
-    for (unsigned n = 0; n < Y.cols(); ++n) err += std::log(Y(index(n),n));
-    err /= Y.cols();
-
+    for (unsigned n = 0; n < classIndex.size(); ++n){
+        err -= std::log(grad(classIndex(n),n));
+    }
+    err /= classIndex.size();
     return err;
 }
-*/

@@ -10,6 +10,7 @@ using namespace Eigen;
 
 enum class LossType {
     quadratic,
+    cross_entropy_softmax,
 };
 
 
@@ -25,7 +26,6 @@ struct Loss {
 };
 
 
-
 struct quadratic: public Loss {
     MatrixXf error(const MatrixXf & prediction, const MatrixXf    & target);
     float    loss (const MatrixXf & prediction, const MatrixXf    & target);
@@ -34,5 +34,13 @@ struct quadratic: public Loss {
     float    loss (const MatrixXf & prediction, const RowVectorXi    & classIndex);
 };
 
+
+struct cross_entropy_softmax: public Loss {
+    MatrixXf error(const MatrixXf & prediction, const MatrixXf    & target);
+    float    loss (const MatrixXf & prediction, const MatrixXf    & target);
+
+    MatrixXf error(const MatrixXf & prediction, const RowVectorXi    & classIndex);
+    float    loss (const MatrixXf & prediction, const RowVectorXi    & classIndex);
+};
 
 #endif /* LOSS_H */

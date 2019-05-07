@@ -35,9 +35,9 @@ double accuracy(const MatrixXf & prediction, const MatrixXf    & target    ) {
 }
 
 
-void loadNormalisedData(std::string path, MatrixXf& X){
+void loadNormalisedData(std::string img_path, std::string label_path, MatrixXf& X, RowVectorXi& Y){
     Matrix<unsigned char,-1,-1> X_load;
-    read_images(path,X_load);
+    read_images(img_path,X_load);
 
     X = X_load.template cast<float>();
 
@@ -45,7 +45,28 @@ void loadNormalisedData(std::string path, MatrixXf& X){
     X = X.array() - mu;
     float std = X.norm()/std::sqrt(X.size()-1);
     X /= std;
+
+    std::vector<int> temp;
+    read_label(label_path,temp);
+    Y = RowVectorXi::Zero(int(temp.size()));
+
+    for (unsigned n = 0; n < temp.size(); ++n){
+        Y(n) = temp[n];
+    }
 }
+
+
+/*
+ * To Do *
+ *
+ * 1) Clean up training interface. Add loss, variable rate etc.
+ * 2) Batch normalisation.
+ * 3) Commandline arguments.
+ * 4) Find issues with ReLU and softmax.
+ * 5) Include validation set and only use best weights.
+ * 6) Implement weight saving.
+ * 7) Add in tanh.
+ * */
 
 
 int main(){
@@ -57,46 +78,30 @@ int main(){
 
 
     neural_net N(784);
-    N.addDense(32);
+    N.addDense(300);
     N.addActivation(ActivationType::sigmoid);
     N.addDense(10);
     N.addActivation(ActivationType::sigmoid);
 
     MatrixXf Xtrain, Xtest;
-    loadNormalisedData(train_img_path,Xtrain);
+    RowVectorXi Ytrain, Ytest;
 
-    std::vector<int> temp;
-    read_label(train_label_path,temp);
-    RowVectorXi Ytrain = RowVectorXi::Zero(int(temp.size()));
-
-    for (unsigned n = 0; n < temp.size(); ++n){
-        Ytrain(n) = temp[n];
-    }
-
-
-    Trainer<MatrixXf, RowVectorXi> T(&N,LossType::quadratic);
-    double start =  std::clock();
-    try {
-       std::cout << "starting training\n\n";
-       T.train(Xtrain,Ytrain);
-    } catch (Exception & e) {
-        e.what();
-    }
-
-    loadNormalisedData(test_img_path,Xtest);
-    temp.clear();
-    read_label(test_label_path,temp);
-    RowVectorXi Ytest = RowVectorXi::Zero(int(temp.size()));
-
-    for (unsigned n = 0; n < temp.size(); ++n){
-        Ytest(n) = temp[n];
-    }
+    loadNormalisedData(train_img_path, train_label_path, Xtrain, Ytrain);
+    loadNormalisedData(test_img_path, test_label_path,Xtest,Ytest);
 
     MatrixXf Z = N.propagate(Xtest);
+    std::cout << "start accuracy = " << accuracy(Z,Ytest) << "\n\n";
 
-    std::cout << accuracy(Z,Ytest) << "\n\n";
+    Trainer<MatrixXf, RowVectorXi> T(&N,LossType::quadratic,20,30,1.0);
 
-    std::cout << (std::clock() - start)/(double(CLOCKS_PER_SEC)) << "\n";
+    double start =  std::clock();
+    T.train(Xtrain,Ytrain);
+    double time = (std::clock() - start)/(double(CLOCKS_PER_SEC));
+
+    N.addActivation(ActivationType::softmax);
+    Z = N.propagate(Xtest);
+    std::cout << "\n\n" << "accuracy = " << accuracy(Z,Ytest) << " in " << time << "s" << "\n\n";
+
 
     return 0;
 }
