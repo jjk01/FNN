@@ -5,12 +5,13 @@
 #include "gradient.h"
 #include "neural_net.h"
 #include <iostream>
-
+#include <functional>
 
 
 class iterateBatch {
 public:
     iterateBatch(neural_net * , LossType, double rate);
+    double getRate(void);
     void setRate(double rate);
 
     template <class Tin, class Tout>
@@ -41,11 +42,13 @@ public:
 
     template <class Tin, class Tout>
     void train(const MatrixBase<Tin> & xtrain, const MatrixBase<Tout> & ytrain,
-               const MatrixBase<Tin> & xval,   const MatrixBase<Tout> & yval);
+               const MatrixBase<Tin> & xval,   const MatrixBase<Tout> & yval,
+               float (*accuracy)(const Tin&, const Tout&) = nullptr);
 
 private:
 
     void printProgress(float loss, long step);
+    void printProgress(float loss, float accu, long step);
 
     template <class Tin, class Tout>
     void shuffle(MatrixBase<Tin> & xdata, MatrixBase<Tout> & ydata);
@@ -59,7 +62,7 @@ private:
     unsigned m_epochs{100};
     unsigned m_batch_size{32};
 
-    neural_net * net = nullptr;
+    neural_net * m_net = nullptr;
     net_parameters optimal_parameters;
 };
 
@@ -73,24 +76,58 @@ private:
 
 
 
-
 template <class Tin, class Tout>
 void Trainer::train(const MatrixBase<Tin>& _xdata, const MatrixBase<Tout>& _ydata) {
     Tin  xdata(_xdata);
     Tout ydata(_ydata);
 
-    float loss;
-
-
     for (long n = 0; n < m_epochs; ++n){
         shuffle(xdata,ydata);
-        loss = processEpoch(xdata,ydata);
+        float loss = processEpoch(xdata,ydata);
         printProgress(loss,n);
     }
 
     std::cout << "Progress |" << std::string(50, '=') + ">| 100 %" << std::endl;
 }
 
+
+
+
+template <class Tin, class Tout>
+void Trainer::train(const MatrixBase<Tin> & xtrain, const MatrixBase<Tout> & ytrain,
+                    const MatrixBase<Tin> & xval,   const MatrixBase<Tout> & yval,
+                    float (*accuracy)(const Tin&, const Tout&)) {
+
+    Tin  xdata(xtrain);
+    Tout ydata(ytrain);
+
+
+    float max_accuracy = 0;
+    float loss;
+    MatrixXf prediction;
+
+    for (long n = 0; n < m_epochs; ++n){
+        shuffle(xdata,ydata);
+        loss = processEpoch(xdata,ydata);
+
+        if (save_best) {
+            prediction = m_net -> propagate(xval);
+            float acc = accuracy(prediction,yval);
+            if (max_accuracy < acc) {
+                optimal_parameters = m_net -> Parameters();
+                max_accuracy = acc;
+            }
+            printProgress(loss,acc,n);
+        } else {
+            printProgress(loss,n);
+        }
+    }
+
+    m_net -> setParameters(optimal_parameters);
+
+    std::cout << "Progress |" << std::string(50, '=') + ">| 100 %" << std::endl;
+
+}
 
 
 

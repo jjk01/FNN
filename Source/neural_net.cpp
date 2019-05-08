@@ -82,3 +82,44 @@ std::vector<Layer*> neural_net::netLayers()  {
     }
     return _layers;
 }
+
+
+void neural_net::setParameters(const net_parameters & parameters){
+
+    unsigned long m = 0;
+    for (unsigned long n = 0; n < layers.size(); ++n){
+
+        LayerType type = layers[n] -> type();
+
+        if (type == LayerType::dense){
+            DenseLayer * t = static_cast<DenseLayer*>(layers[n].get());
+            t -> setParameters(parameters.w[m], parameters.b[m]);
+            ++m;
+        }
+    }
+}
+
+
+net_parameters neural_net::Parameters(void) const {
+    net_parameters parameters;
+
+    for (unsigned long n = 0; n < layers.size(); ++n){
+
+        LayerType type = layers[n] -> type();
+
+        if (type == LayerType::dense){
+            DenseLayer * t = static_cast<DenseLayer*>(layers[n].get());
+            parameters.w.push_back( t -> weight() );
+            parameters.b.push_back( t -> bias() );
+        }
+    }
+
+    return parameters;
+
+}
+
+
+/*===============================================================================================*/
+
+
+

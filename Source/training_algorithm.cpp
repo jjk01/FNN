@@ -8,7 +8,10 @@
 
 Trainer::Trainer(neural_net * net, LossType loss, unsigned epochs, unsigned batch_size, double rate):
     iterate(net,loss,rate),
-    m_epochs(epochs), m_batch_size(batch_size){}
+    m_epochs(epochs), m_batch_size(batch_size), m_net(net){
+
+    optimal_parameters =  m_net -> Parameters();
+}
 
 
 
@@ -20,6 +23,17 @@ void Trainer::printProgress(float loss, long step){
     std::string bar = std::string(barLength, '=') + ">" + std::string(50 - barLength, '_') ;
     std::ostringstream stringStream;
     stringStream << " Progress |" << bar + "| " << std::to_string(percentage) << " %, loss = " << loss;
+    std::cout << stringStream.str() << "\r" << std::flush;
+}
+
+
+void Trainer::printProgress(float loss, float acc, long step){
+
+    long percentage = (100*step)/m_epochs;
+    long barLength = percentage/2;
+    std::string bar = std::string(barLength, '=') + ">" + std::string(50 - barLength, '_') ;
+    std::ostringstream stringStream;
+    stringStream << " Progress |" << bar + "| " << std::to_string(percentage) << " %, loss = " << loss << " , acc = " << acc;
     std::cout << stringStream.str() << "\r" << std::flush;
 }
 

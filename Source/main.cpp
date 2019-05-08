@@ -7,19 +7,21 @@
 using namespace Eigen;
 
 
-double accuracy(const MatrixXf & prediction, const RowVectorXi & classIndex) {
+float accuracy(const MatrixXf & prediction, const RowVectorXi & classIndex) {
+
     MatrixXf::Index   maxIndex;
-    double correct = 0;
-    double total = classIndex.cols();
+    float correct = 0;
+    float total = classIndex.cols();
 
     for(int i = 0; i < total; ++i){
         prediction.col(i).maxCoeff( &maxIndex);
         if (maxIndex==classIndex(i)) ++correct;
     }
-    return 100.*correct/total;
+
+    return 100.f*correct/total;
 }
 
-
+/*
 double accuracy(const MatrixXf & prediction, const MatrixXf    & target    ) {
     MatrixXf::Index   maxIndex_1, maxIndex_2;
     double correct = 0;
@@ -33,6 +35,7 @@ double accuracy(const MatrixXf & prediction, const MatrixXf    & target    ) {
 
     return 100.*correct/total;
 }
+*/
 
 
 void loadNormalisedData(std::string img_path, std::string label_path, MatrixXf& X, RowVectorXi& Y){
@@ -83,7 +86,6 @@ int main(){
     N.addDense(300);
     N.addActivation(ActivationType::sigmoid);
     N.addDense(10);
-    //N.addActivation(ActivationType::sigmoid);
 
 
     MatrixXf Xtrain, Xtest;
@@ -98,7 +100,7 @@ int main(){
     Trainer T(&N,LossType::cross_entropy_softmax,150,30,0.1);
 
     double start =  std::clock();
-    T.train(Xtrain,Ytrain);
+    T.train(Xtrain,Ytrain, Xtest,Ytest,accuracy);
     double time = (std::clock() - start)/(double(CLOCKS_PER_SEC));
 
     N.addActivation(ActivationType::softmax);

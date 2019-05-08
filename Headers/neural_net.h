@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-class net_parameters;
+struct net_parameters;
 
 
 class neural_net {
@@ -18,6 +18,8 @@ public:
     void addActivation(ActivationType _type);
     void addDense(int Nout);
     void setParameters(const net_parameters &);
+    net_parameters Parameters(void) const;
+
     MatrixXf propagate(const MatrixXf &);
     std::vector<Layer*> netLayers();
 
@@ -28,12 +30,7 @@ private:
 
 
 
-class net_parameters {
-public:
-    net_parameters() = default;
-    net_parameters(const neural_net *);
-    net_parameters(std::vector<long>);
-private:
+struct net_parameters {
     std::vector<MatrixXf> w;
     std::vector<VectorXf> b;
 };
