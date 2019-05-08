@@ -65,21 +65,24 @@ void loadNormalisedData(std::string img_path, std::string label_path, MatrixXf& 
  * 1) Clean up training interface. Add loss, variable rate etc.
  * 2) Batch normalisation.
  * 3) Commandline arguments.
- * 4) Find issues with ReLU and softmax.
- * 5) Include validation set and only use best weights.
  * 6) Implement weight saving.
  * 7) Add in tanh.
- * 8) Add in user defined accuracy.
  * 9) Addaptive rate.
+
+ * Done
+ *
+ * 4) Find issues with ReLU and softmax.
+ * 5) Include validation set and only use best weights.
+ * 8) Add in user defined accuracy.
  * */
 
 
 int main(){
 
-    std::string train_img_path   = "/home/jamesklatzow/Documents/Machine_Learning/MNIST_data/train-images.idx3-ubyte";
-    std::string train_label_path = "/home/jamesklatzow/Documents/Machine_Learning/MNIST_data/train-labels.idx1-ubyte";
-    std::string test_img_path    = "/home/jamesklatzow/Documents/Machine_Learning/MNIST_data/t10k-images.idx3-ubyte";
-    std::string test_label_path  = "/home/jamesklatzow/Documents/Machine_Learning/MNIST_data/t10k-labels.idx1-ubyte";
+    std::string train_img_path   = "/Users/klatzow/Downloads/train-images.idx3-ubyte";
+    std::string train_label_path = "/Users/klatzow/Downloads/train-labels.idx1-ubyte";
+    std::string test_img_path    = "/Users/klatzow/Downloads/t10k-images.idx3-ubyte";
+    std::string test_label_path  = "/Users/klatzow/Downloads/t10k-labels.idx1-ubyte";
 
 
     neural_net N(784);
@@ -97,7 +100,7 @@ int main(){
     MatrixXf Z = N.propagate(Xtest);
     std::cout << "start accuracy = " << accuracy(Z,Ytest) << "\n\n";
 
-    Trainer T(&N,LossType::cross_entropy_softmax,150,30,0.1);
+    Trainer T(&N,LossType::cross_entropy_softmax,200,30,0.1);
 
     double start =  std::clock();
     T.train(Xtrain,Ytrain, Xtest,Ytest,accuracy);

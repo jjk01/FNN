@@ -15,7 +15,6 @@ Trainer::Trainer(neural_net * net, LossType loss, unsigned epochs, unsigned batc
 
 
 
-
 void Trainer::printProgress(float loss, long step){
 
     long percentage = (100*step)/m_epochs;
@@ -64,10 +63,10 @@ iterateBatch::iterateBatch(neural_net * net, LossType _loss, double rate): m_rat
 
     switch (_loss) {
         case LossType::quadratic:
-            loss.reset(new quadratic());
+            m_loss.reset(new quadratic());
             break;
         case LossType::cross_entropy_softmax:
-            loss.reset(new cross_entropy_softmax());
+            m_loss.reset(new cross_entropy_softmax());
             break;
     }
 }
@@ -107,5 +106,3 @@ void iterateBatch::backPropagate(const MatrixXf & yerror) {
 
     }
 }
-
-
