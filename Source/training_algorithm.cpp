@@ -58,6 +58,12 @@ iterateBatch::iterateBatch(neural_net * net, LossType _loss, double rate): m_rat
     }
 }
 
+
+void iterateBatch::setRate(double rate){
+    m_rate = rate;
+}
+
+
 void iterateBatch::batchNormalise(MatrixXf & xdata) {
     float mu = xdata.mean();
     xdata = xdata.array() - mu;

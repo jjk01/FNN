@@ -64,22 +64,22 @@ long ActivationLayer::outputSize() const {
 
 
 DenseLayer::DenseLayer(long n_in, long n_out, Layer * _previous): Layer(_previous),
-    w(MatrixXf::Zero(n_out,n_in)), b(VectorXf::Zero(n_out)){
+    m_w(MatrixXf::Zero(n_out,n_in)), m_b(VectorXf::Zero(n_out)){
 
     std::default_random_engine generator;
-    std::normal_distribution<double> weight_dist(0,1/sqrt(n_in)),bias_dist(0,1) ;
+    std::normal_distribution<float> weight_dist(0,float(1/sqrt(n_in))),bias_dist(0,1) ;
 
     for (long r = 0; r < n_out; ++r){
-        b(r) = bias_dist(generator);
+        m_b(r) = bias_dist(generator);
         for (long c = 0; c < n_in; ++c){
-            w(r,c) = weight_dist(generator);
+            m_w(r,c) = weight_dist(generator);
         }
     }
 }
 
 DenseLayer::DenseLayer(const DenseLayer & arg, Layer * prev): Layer(prev) {
-    w = arg.w;
-    b = arg.b;
+    m_w = arg.m_w;
+    m_b = arg.m_b;
 }
 
 
@@ -90,18 +90,23 @@ std::unique_ptr<Layer> DenseLayer::clone(Layer * _previous) {
 
 
 
+void DenseLayer::setParameters(const MatrixXf& w, const VectorXf & b){
+    m_w = w;
+    m_b = b;
+}
+
 void DenseLayer::update(const MatrixXf& dw, const VectorXf & db){
-    w += dw;
-    b += db;
+    m_w += dw;
+    m_b += db;
 }
 
 const MatrixXf & DenseLayer::weight() const {
-    return w;
+    return m_w;
 }
 
 
 const VectorXf & DenseLayer::bias() const {
-    return b;
+    return m_b;
 }
 
 
@@ -109,18 +114,18 @@ LayerType DenseLayer::type(void) { return LayerType::dense;}
 
 
 MatrixXf DenseLayer::feedForward(const MatrixXf & x) {
-    return (w*x).colwise() + b;
+    return (m_w*x).colwise() + m_b;
 }
 
 
 
 long DenseLayer::inputSize() const{
-    return w.cols();
+    return m_w.cols();
 }
 
 
 long DenseLayer::outputSize() const{
-    return w.rows();
+    return m_w.rows();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

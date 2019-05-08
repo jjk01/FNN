@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-//class net_parameters;
+class net_parameters;
 
 
 class neural_net {
@@ -17,36 +17,25 @@ public:
 
     void addActivation(ActivationType _type);
     void addDense(int Nout);
-
+    void setParameters(const net_parameters &);
     MatrixXf propagate(const MatrixXf &);
-
     std::vector<Layer*> netLayers();
 
-
 private:
-
     long m_input_size;
     std::vector<std::unique_ptr<Layer>> layers;
 };
 
 
 
-
-
-
-/*
-
-z_{pqr}^{l} = sum_{x,y,z} W_{r,x,y,z}^{l} a_{x+p,y+q,z}^{l-1} + b_{pqr}^{l} = a.correlation(W) + b
-
-epsilon_{i,j,k}^{l} = sigma'(z_{i,j,k}) sum_{x=0}^{min{i,n_x-1} sum_{y=0}^{min{j,n_y-1} sum_{z} W_{z,x,y,k}^{l+1} epsilon_{i-x,j-y,k}^{l+1}
-
-epsilon_{i,j,k}^{l} = sigma'(z_{i,j,k}) epsilon^{l+1}.convolve(W_{k}^{l+1})
-
-dC/d(b_{ijk}^{l}) = epsilon_{ijk}^{l}
-
-dC/d(W_{r,x,y,z}^{l}) = sum_{i,j} epsilon_{ijr}^{l} a_{i+x,j+y,z}^{l-1}
-
-*/
-
+class net_parameters {
+public:
+    net_parameters() = default;
+    net_parameters(const neural_net *);
+    net_parameters(std::vector<long>);
+private:
+    std::vector<MatrixXf> w;
+    std::vector<VectorXf> b;
+};
 
 #endif /* NEURAL_NET_H */

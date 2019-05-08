@@ -76,6 +76,7 @@ public:
     LayerType type(void);
     MatrixXf feedForward(const MatrixXf &);
 
+    void setParameters(const MatrixXf& w, const VectorXf & b);
     void update(const MatrixXf& dw, const VectorXf & db);
     const MatrixXf & weight(void) const;
     const VectorXf & bias(void) const;
@@ -83,8 +84,8 @@ public:
     long outputSize() const;
 
 protected:
-    MatrixXf w;
-    VectorXf b;
+    MatrixXf m_w;
+    VectorXf m_b;
 };
 
 

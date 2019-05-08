@@ -66,6 +66,8 @@ void loadNormalisedData(std::string img_path, std::string label_path, MatrixXf& 
  * 5) Include validation set and only use best weights.
  * 6) Implement weight saving.
  * 7) Add in tanh.
+ * 8) Add in user defined accuracy.
+ * 9) Addaptive rate.
  * */
 
 

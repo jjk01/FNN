@@ -11,25 +11,22 @@
 class iterateBatch {
 public:
     iterateBatch(neural_net * , LossType, double rate);
+    void setRate(double rate);
 
     template <class Tin, class Tout>
     float operator()(const MatrixBase<Tin> & x, const MatrixBase<Tout> & y, unsigned start, unsigned batch_size);
 
-protected:
+private:
+
     MatrixXf forwardPropagate(const MatrixXf & xdata);
     void backPropagate(const MatrixXf & yerror);
-
     void batchNormalise(MatrixXf & xdata);
 
     std::vector<std::unique_ptr<Gradient>> layers;
     std::unique_ptr<Loss> loss = nullptr;
-
     MatrixXf X,Z,error;
     double m_rate;
 };
-
-
-
 
 
 
@@ -61,6 +58,9 @@ private:
     iterateBatch iterate;
     unsigned m_epochs{100};
     unsigned m_batch_size{32};
+
+    neural_net * net = nullptr;
+    net_parameters optimal_parameters;
 };
 
 
