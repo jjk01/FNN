@@ -54,7 +54,7 @@ int main(){
     MatrixXf Z = N.propagate(Xtest);
     std::cout << "start accuracy = " << accuracy(Z,Ytest) << "\n\n";
 
-    Trainer T(&N,LossType::cross_entropy_softmax,300,120,0.05);
+    Trainer T(&N,LossType::cross_entropy_softmax,300,120,0.1);
 
     double start =  std::clock();
     T.train(Xtrain,Ytrain, Xtest,Ytest,accuracy);
