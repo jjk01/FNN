@@ -7,7 +7,7 @@
 
 
 Trainer::Trainer(neural_net * net, LossType loss, unsigned epochs, unsigned batch_size, double rate):
-    iterate(net,loss,rate),
+    strategy(net,loss,rate),
     m_epochs(epochs), m_batch_size(batch_size), m_net(net){
 
     optimal_parameters =  m_net -> Parameters();
@@ -39,7 +39,7 @@ void Trainer::printProgress(float loss, float acc, long step){
 
 
 
-iterateBatch::iterateBatch(neural_net * net, LossType _loss, double rate): m_rate(rate) {
+Strategy::Strategy(neural_net * net, LossType _loss, double rate): m_rate(rate) {
 
     std::vector<Layer*> NN_layers = net -> netLayers();
 
@@ -72,12 +72,12 @@ iterateBatch::iterateBatch(neural_net * net, LossType _loss, double rate): m_rat
 }
 
 
-void iterateBatch::setRate(double rate){
+void Strategy::setRate(double rate){
     m_rate = rate;
 }
 
 
-void iterateBatch::batchNormalise(MatrixXf & xdata) {
+void Strategy::batchNormalise(MatrixXf & xdata) {
     float mu = xdata.mean();
     xdata = xdata.array() - mu;
     float std = xdata.norm()/std::sqrt(xdata.size()-1);
@@ -87,7 +87,7 @@ void iterateBatch::batchNormalise(MatrixXf & xdata) {
 
 
 
-MatrixXf iterateBatch::forwardPropagate(const MatrixXf & xdata){
+MatrixXf Strategy::forwardPropagate(const MatrixXf & xdata){
     MatrixXf y(xdata);
 
     for (auto i = layers.begin(); i != layers.end(); ++i){
@@ -97,7 +97,7 @@ MatrixXf iterateBatch::forwardPropagate(const MatrixXf & xdata){
 }
 
 
-void iterateBatch::backPropagate(const MatrixXf & yerror) {
+void Strategy::backPropagate(const MatrixXf & yerror) {
     MatrixXf g(yerror);
 
     for (auto i = layers.rbegin(); i != layers.rend(); ++i){

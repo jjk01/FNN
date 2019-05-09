@@ -7,6 +7,69 @@
 using namespace Eigen;
 
 
+
+
+/*
+ * To Do *
+ *
+ * 1) Clean up training interface. Add loss, variable rate etc.
+ * 2) Batch normalisation.
+ * 3) Commandline arguments.
+ * 6) Implement weight saving.
+ * 9) Addaptive rate.
+
+ * Done
+ *
+ * 4) Find issues with ReLU and softmax.
+ * 5) Include validation set and only use best weights.
+ * 7) Add in tanh.
+ * 8) Add in user defined accuracy.
+ * */
+
+
+float accuracy(const MatrixXf & prediction, const RowVectorXi & classIndex);
+void loadNormalisedData(std::string img_path, std::string label_path, MatrixXf& X, RowVectorXi& Y);
+
+
+int main(){
+
+    std::string train_img_path   = "/home/jamesklatzow/Documents/Machine_Learning/MNIST_data/train-images.idx3-ubyte";
+    std::string train_label_path = "/home/jamesklatzow/Documents/Machine_Learning/MNIST_data/train-labels.idx1-ubyte";
+    std::string test_img_path    = "/home/jamesklatzow/Documents/Machine_Learning/MNIST_data/t10k-images.idx3-ubyte";
+    std::string test_label_path  = "/home/jamesklatzow/Documents/Machine_Learning/MNIST_data/t10k-labels.idx1-ubyte";
+
+
+    neural_net N(784);
+    N.addDense(300);
+    N.addActivation(ActivationType::tanh);
+    N.addDense(10);
+
+
+    MatrixXf Xtrain, Xtest;
+    RowVectorXi Ytrain, Ytest;
+
+    loadNormalisedData(train_img_path, train_label_path, Xtrain, Ytrain);
+    loadNormalisedData(test_img_path, test_label_path,Xtest,Ytest);
+
+    MatrixXf Z = N.propagate(Xtest);
+    std::cout << "start accuracy = " << accuracy(Z,Ytest) << "\n\n";
+
+    Trainer T(&N,LossType::cross_entropy_softmax,300,120,0.05);
+
+    double start =  std::clock();
+    T.train(Xtrain,Ytrain, Xtest,Ytest,accuracy);
+    double time = (std::clock() - start)/(double(CLOCKS_PER_SEC));
+
+    N.addActivation(ActivationType::softmax);
+    Z = N.propagate(Xtest);
+    std::cout << "\n\n" << "accuracy = " << accuracy(Z,Ytest) << " in " << time << "s" << "\n\n";
+
+    return 0;
+}
+
+
+
+
 float accuracy(const MatrixXf & prediction, const RowVectorXi & classIndex) {
 
     MatrixXf::Index   maxIndex;
@@ -21,21 +84,6 @@ float accuracy(const MatrixXf & prediction, const RowVectorXi & classIndex) {
     return 100.f*correct/total;
 }
 
-/*
-double accuracy(const MatrixXf & prediction, const MatrixXf    & target    ) {
-    MatrixXf::Index   maxIndex_1, maxIndex_2;
-    double correct = 0;
-    double total = target.cols();
-
-    for(int i = 0; i < total; ++i){
-        prediction.col(i).maxCoeff( &maxIndex_1);
-        target.col(i).maxCoeff( &maxIndex_2);
-        if (maxIndex_1==maxIndex_2) ++correct;
-    }
-
-    return 100.*correct/total;
-}
-*/
 
 
 void loadNormalisedData(std::string img_path, std::string label_path, MatrixXf& X, RowVectorXi& Y){
@@ -56,60 +104,4 @@ void loadNormalisedData(std::string img_path, std::string label_path, MatrixXf& 
     for (unsigned n = 0; n < temp.size(); ++n){
         Y(n) = temp[n];
     }
-}
-
-
-/*
- * To Do *
- *
- * 1) Clean up training interface. Add loss, variable rate etc.
- * 2) Batch normalisation.
- * 3) Commandline arguments.
- * 6) Implement weight saving.
- * 7) Add in tanh.
- * 9) Addaptive rate.
-
- * Done
- *
- * 4) Find issues with ReLU and softmax.
- * 5) Include validation set and only use best weights.
- * 8) Add in user defined accuracy.
- * */
-
-
-int main(){
-
-    std::string train_img_path   = "/Users/klatzow/Downloads/train-images.idx3-ubyte";
-    std::string train_label_path = "/Users/klatzow/Downloads/train-labels.idx1-ubyte";
-    std::string test_img_path    = "/Users/klatzow/Downloads/t10k-images.idx3-ubyte";
-    std::string test_label_path  = "/Users/klatzow/Downloads/t10k-labels.idx1-ubyte";
-
-
-    neural_net N(784);
-    N.addDense(300);
-    N.addActivation(ActivationType::tanh);
-    N.addDense(10);
-
-
-    MatrixXf Xtrain, Xtest;
-    RowVectorXi Ytrain, Ytest;
-
-    loadNormalisedData(train_img_path, train_label_path, Xtrain, Ytrain);
-    loadNormalisedData(test_img_path, test_label_path,Xtest,Ytest);
-
-    MatrixXf Z = N.propagate(Xtest);
-    std::cout << "start accuracy = " << accuracy(Z,Ytest) << "\n\n";
-
-    Trainer T(&N,LossType::cross_entropy_softmax,200,30,0.1);
-
-    double start =  std::clock();
-    T.train(Xtrain,Ytrain, Xtest,Ytest,accuracy);
-    double time = (std::clock() - start)/(double(CLOCKS_PER_SEC));
-
-    N.addActivation(ActivationType::softmax);
-    Z = N.propagate(Xtest);
-    std::cout << "\n\n" << "accuracy = " << accuracy(Z,Ytest) << " in " << time << "s" << "\n\n";
-
-
-    return 0;
 }
