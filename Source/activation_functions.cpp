@@ -12,6 +12,10 @@ MatrixXf sigmoid_function(const MatrixXf & x){
 }
 
 
+MatrixXf tanh_function(const MatrixXf & x){
+    return x.array().tanh();
+}
+
 
 MatrixXf ReLU_function (const MatrixXf & x){
     return x.cwiseMax(0);

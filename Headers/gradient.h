@@ -8,9 +8,9 @@
 using namespace Eigen;
 
 
-
 MatrixXf identity_gradient(const MatrixXf &, const MatrixXf&);
 MatrixXf sigmoid_gradient(const MatrixXf &, const MatrixXf &);
+MatrixXf tanh_gradient(const MatrixXf &, const MatrixXf &);
 MatrixXf ReLU_gradient(const MatrixXf &, const MatrixXf &);
 MatrixXf softmax_gradient(const MatrixXf &, const MatrixXf &);
 

@@ -11,6 +11,7 @@ using namespace Eigen;
 enum class ActivationType {
     identity,
     sigmoid,
+    tanh,
     ReLU,
     softmax,
 };

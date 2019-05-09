@@ -87,7 +87,7 @@ int main(){
 
     neural_net N(784);
     N.addDense(300);
-    N.addActivation(ActivationType::sigmoid);
+    N.addActivation(ActivationType::tanh);
     N.addDense(10);
 
 

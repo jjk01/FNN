@@ -17,6 +17,9 @@ ActivationLayer::ActivationLayer(ActivationType type, Layer * _previous): Layer(
         case ActivationType::sigmoid:
             this->fn = &sigmoid_function;
             break;
+        case ActivationType::tanh:
+            this->fn = &tanh_function;
+            break;
         case ActivationType::ReLU:
             this->fn = &ReLU_function;
             break;

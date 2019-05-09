@@ -11,6 +11,9 @@ ActivationGradient::ActivationGradient(ActivationLayer * _layer): layer(_layer) 
         case ActivationType::sigmoid:
             this->fn = &sigmoid_gradient;
             break;
+        case ActivationType::tanh:
+            this->fn = &tanh_gradient;
+            break;
         case ActivationType::ReLU:
             this->fn = &ReLU_gradient;
             break;
@@ -82,6 +85,10 @@ MatrixXf sigmoid_gradient (const MatrixXf& g, const MatrixXf& y){
     return (1 - y.array())*y.array()*g.array();
 }
 
+
+MatrixXf tanh_gradient (const MatrixXf& g, const MatrixXf& y){
+    return (1 - y.array().square())*g.array();
+}
 
 
 MatrixXf ReLU_gradient (const MatrixXf& g, const MatrixXf& y){
