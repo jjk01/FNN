@@ -56,7 +56,7 @@ int main(){
     MatrixXf Z = N.propagate(Xtest);
     std::cout << "start accuracy = " << accuracy(Z,Ytest) << "\n\n";
 
-    Trainer T(&N,LossType::cross_entropy_softmax,300,120,0.1);
+    Trainer T(&N,LossType::cross_entropy_softmax,300,30,0.1f);
 
     double start =  std::clock();
     T.train(Xtrain,Ytrain, Xtest,Ytest,accuracy);
@@ -96,7 +96,7 @@ void loadNormalisedData(std::string img_path, std::string label_path, MatrixXf& 
 
     float mu = X.mean();
     X = X.array() - mu;
-    float std = X.norm()/std::sqrt(X.size()-1);
+    float std = X.norm()/float(std::sqrt(X.size()-1));
     X /= std;
 
     std::vector<int> temp;
