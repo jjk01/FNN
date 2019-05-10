@@ -14,7 +14,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/staticlib)
 
 
 find_package (Eigen3 REQUIRED)
-find_package(OpenMP REQUIRED)
+#find_package(OpenMP REQUIRED)
 
 
 #find_package(OpenMP)
@@ -30,4 +30,4 @@ include_directories(${CMAKE_SOURCE_DIR}/Headers)
 
 add_executable (FNN ${SOURCE} ${HEADERS} )
 #target_link_libraries (FNN Eigen3::Eigen)
-target_link_libraries(FNN PRIVATE OpenMP::OpenMP_CXX)
+#target_link_libraries(FNN PRIVATE OpenMP::OpenMP_CXX)

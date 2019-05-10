@@ -6,11 +6,22 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-Trainer::Trainer(neural_net * net, LossType loss, unsigned epochs, unsigned batch_size, double rate):
-    strategy(net,loss,rate),
+Trainer::Trainer(neural_net * net, LossType loss, unsigned epochs, unsigned batch_size, float rate):
     m_epochs(epochs), m_batch_size(batch_size), m_net(net){
 
     optimal_parameters =  m_net -> Parameters();
+
+    switch (loss) {
+        case LossType::quadratic:
+            m_loss.reset(new quadratic());
+            break;
+        case LossType::cross_entropy_softmax:
+            m_loss.reset(new cross_entropy_softmax());
+            break;
+    }
+
+    m_batch = processBatch(net,m_loss.get(),rate);
+
 }
 
 
@@ -39,7 +50,7 @@ void Trainer::printProgress(float loss, float acc, long step){
 
 
 
-Strategy::Strategy(neural_net * net, LossType _loss, double rate): m_rate(rate) {
+processBatch::processBatch(neural_net * net, Loss * loss, float rate): m_rate(rate), m_loss(loss) {
 
     std::vector<Layer*> NN_layers = net -> netLayers();
 
@@ -60,24 +71,15 @@ Strategy::Strategy(neural_net * net, LossType _loss, double rate): m_rate(rate) 
                 break;
         }
     }
-
-    switch (_loss) {
-        case LossType::quadratic:
-            m_loss.reset(new quadratic());
-            break;
-        case LossType::cross_entropy_softmax:
-            m_loss.reset(new cross_entropy_softmax());
-            break;
-    }
 }
 
 
-void Strategy::setRate(double rate){
+void processBatch::setRate(float rate){
     m_rate = rate;
 }
 
 
-void Strategy::batchNormalise(MatrixXf & xdata) {
+void processBatch::batchNormalise(MatrixXf & xdata) {
     float mu = xdata.mean();
     xdata = xdata.array() - mu;
     float std = xdata.norm()/std::sqrt(xdata.size()-1);
@@ -87,9 +89,8 @@ void Strategy::batchNormalise(MatrixXf & xdata) {
 
 
 
-MatrixXf Strategy::forwardPropagate(const MatrixXf & xdata){
+MatrixXf processBatch::forwardPropagate(const MatrixXf & xdata){
     MatrixXf y(xdata);
-
     for (auto i = layers.begin(); i != layers.end(); ++i){
         y = (*i) -> feedForward(y);
     }
@@ -97,7 +98,7 @@ MatrixXf Strategy::forwardPropagate(const MatrixXf & xdata){
 }
 
 
-void Strategy::backPropagate(const MatrixXf & yerror) {
+void processBatch::backPropagate(const MatrixXf & yerror) {
     MatrixXf g(yerror);
 
     for (auto i = layers.rbegin(); i != layers.rend(); ++i){

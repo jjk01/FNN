@@ -7,19 +7,19 @@
 #include <iostream>
 #include <functional>
 
+class Trainer;
 
-class Strategy {
+class processBatch {
 public:
-    Strategy(neural_net * , LossType, double rate);
-    double getRate(void);
-    void setRate(double rate);
+    processBatch() = default;
+    processBatch(neural_net * , Loss *, float rate);
 
     template <class Tin, class Tout>
     void iterate(const MatrixBase<Tin> & x, const MatrixBase<Tout> & y, unsigned start, unsigned batch_size);
 
-    template <class Tin, class Tout>
-    float loss(const MatrixBase<Tin>& x, const MatrixBase<Tout>& y);
-
+    float getRate(void);
+    void setRate(float rate);
+    
 private:
 
     MatrixXf forwardPropagate(const MatrixXf & xdata);
@@ -27,9 +27,9 @@ private:
     void batchNormalise(MatrixXf & xdata);
 
     std::vector<std::unique_ptr<Gradient>> layers;
-    std::unique_ptr<Loss> m_loss = nullptr;
+    Loss * m_loss = nullptr;
     MatrixXf X,Z,error;
-    double m_rate;
+    float m_rate;
 };
 
 
@@ -38,7 +38,7 @@ private:
 class Trainer {
 public:
 
-    Trainer(neural_net * , LossType, unsigned epochs = 25, unsigned batch_size = 32, double rate = 0.1);
+    Trainer(neural_net * , LossType, unsigned epochs = 25, unsigned batch_size = 32, float rate = 0.1);
 
     template <class Tin, class Tout>
     void train(const MatrixBase<Tin> & xdata, const MatrixBase<Tout> & ydata);
@@ -59,13 +59,17 @@ private:
     template <class Tin, class Tout>
     void processEpoch(const MatrixBase<Tin> & xdata, const MatrixBase<Tout> & ydata);
 
+    template <class Tin, class Tout>
+    float loss(const MatrixBase<Tin> & x, const MatrixBase<Tout> & y);
+
     PermutationMatrix<Dynamic,Dynamic> P;
 
-    Strategy strategy;
+    processBatch m_batch;
     unsigned m_epochs{100};
     unsigned m_batch_size{32};
 
     neural_net * m_net = nullptr;
+    std::unique_ptr<Loss> m_loss = nullptr;
     net_parameters optimal_parameters;
 
 };
@@ -89,7 +93,7 @@ void Trainer::train(const MatrixBase<Tin>& _xdata, const MatrixBase<Tout>& _ydat
     for (long n = 0; n < m_epochs; ++n){
         shuffle(xdata,ydata);
         processEpoch(xdata,ydata);
-        loss = strategy.loss(xdata,ydata);
+        loss = m_loss -> loss(xdata,ydata);
         printProgress(loss,n);
     }
     std::cout << "Progress |" << std::string(50, '=') + ">| 100 %" << std::endl;
@@ -106,28 +110,27 @@ void Trainer::train(const MatrixBase<Tin> & xtrain, const MatrixBase<Tout> & ytr
     Tin  xdata(xtrain);
     Tout ydata(ytrain);
 
-    float accuracy, loss, max_accuracy = 0;
+    float accuracy, epoch_loss, max_accuracy = 0;
     MatrixXf prediction;
 
     for (long n = 0; n < m_epochs; ++n){
         shuffle(xdata,ydata);
         processEpoch(xdata,ydata);
-        loss = strategy.loss(xdata,ydata);
+        epoch_loss = loss(xdata,ydata);
 
         if (func != nullptr) {
             prediction = m_net -> propagate(xval);
             accuracy = func(prediction,yval);
-            printProgress(loss,accuracy,n);
+            printProgress(epoch_loss,accuracy,n);
         } else {
-            accuracy = 1 - strategy.loss(xval,yval);
-            printProgress(loss,n);
+            accuracy = 1 - loss(xval,yval);
+            printProgress(epoch_loss,n);
         }
 
         if (max_accuracy < accuracy) {
             optimal_parameters = m_net -> Parameters();
             max_accuracy = accuracy;
         }
-
     }
 
     m_net -> setParameters(optimal_parameters);
@@ -153,38 +156,38 @@ void Trainer::processEpoch(const MatrixBase<Tin>& xdata, const MatrixBase<Tout>&
     unsigned batches = xdata.cols()/m_batch_size;
 
     for (unsigned n = 0; n < batches; ++n) {
-        strategy.iterate(xdata,ydata,n,m_batch_size);
+        m_batch.iterate(xdata,ydata,n,m_batch_size);
     }
 
     unsigned remaining = xdata.cols()%m_batch_size;
 
     if (remaining != 0) {
-        strategy.iterate(xdata,ydata, m_batch_size*batches, remaining);
+        m_batch.iterate(xdata,ydata, m_batch_size*batches, remaining);
     }
 }
 
 
 
+template <class Tin, class Tout>
+float Trainer::loss(const MatrixBase<Tin> & x, const MatrixBase<Tout> & y){
+    MatrixXf X = x.template cast<float> ();
+    Tout Y(y);
+    MatrixXf prediction = m_net -> propagate(X);;
+    return m_loss -> loss(prediction,Y);
+}
+
+
 
 template <class Tin, class Tout>
-void Strategy::iterate(const MatrixBase<Tin> & x, const MatrixBase<Tout> & y, unsigned start, unsigned batch_size) {
-
+void processBatch::iterate(const MatrixBase<Tin> & x, const MatrixBase<Tout> & y, unsigned start, unsigned batch_size) {
     X = x.block(0,start,x.rows(),batch_size). template cast<float> ();
     Tout Y = y.block(0,start,y.rows(),batch_size);
-
     Z = forwardPropagate(X);
     error = m_loss -> error(Z,Y);
     backPropagate(error);
 }
 
 
-template <class Tin, class Tout>
-float Strategy::loss(const MatrixBase<Tin> & x, const MatrixBase<Tout> & y){
-    X = x.template cast<float> ();
-    Tout Y(y);
-    MatrixXf prediction = forwardPropagate(X);
-    return m_loss -> loss(prediction,Y);
-}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
