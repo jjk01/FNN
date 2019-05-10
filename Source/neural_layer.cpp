@@ -34,7 +34,7 @@ ActivationLayer::ActivationLayer(ActivationType type, Layer * _previous): Layer(
 
 std::unique_ptr<Layer> ActivationLayer::clone(Layer * _previous) {
     std::unique_ptr<Layer> l = std::make_unique<ActivationLayer>(fn_type,_previous);
-    return std::move(l);
+    return l;
 }
 
 
@@ -88,7 +88,7 @@ DenseLayer::DenseLayer(const DenseLayer & arg, Layer * prev): Layer(prev) {
 
 std::unique_ptr<Layer> DenseLayer::clone(Layer * _previous) {
     std::unique_ptr<Layer> l = std::make_unique<DenseLayer>(*this, _previous);
-    return std::move(l);
+    return l;
 }
 
 

@@ -33,10 +33,12 @@ void loadNormalisedData(std::string img_path, std::string label_path, MatrixXf& 
 
 int main(){
 
-    std::string train_img_path   = "/Users/klatzow/Downloads/train-images.idx3-ubyte";
-    std::string train_label_path = "/Users/klatzow/Downloads/train-labels.idx1-ubyte";
-    std::string test_img_path    = "/Users/klatzow/Downloads/t10k-images.idx3-ubyte";
-    std::string test_label_path  = "/Users/klatzow/Downloads/t10k-labels.idx1-ubyte";
+    std::string data_dir         =  "/home/jamesklatzow/Documents/Machine_Learning/MNIST_data/";
+
+    std::string train_img_path   =  data_dir + "train-images.idx3-ubyte";
+    std::string train_label_path =  data_dir + "train-labels.idx1-ubyte";
+    std::string test_img_path    =  data_dir + "t10k-images.idx3-ubyte";
+    std::string test_label_path  =  data_dir + "t10k-labels.idx1-ubyte";
 
 
     neural_net N(784);

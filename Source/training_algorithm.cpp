@@ -29,7 +29,7 @@ Trainer::Trainer(neural_net * net, LossType loss, unsigned epochs, unsigned batc
 void Trainer::printProgress(float loss, long step){
 
     long percentage = (100*step)/m_epochs;
-    long barLength = percentage/2;
+    unsigned long barLength = static_cast<unsigned long>(percentage/2);
     std::string bar = std::string(barLength, '=') + ">" + std::string(50 - barLength, '_') ;
     std::ostringstream stringStream;
     stringStream << " Progress |" << bar + "| " << std::to_string(percentage) << " %, loss = " << loss;
@@ -40,7 +40,7 @@ void Trainer::printProgress(float loss, long step){
 void Trainer::printProgress(float loss, float acc, long step){
 
     long percentage = (100*step)/m_epochs;
-    long barLength = percentage/2;
+    unsigned long barLength = static_cast<unsigned long>(percentage/2);
     std::string bar = std::string(barLength, '=') + ">" + std::string(50 - barLength, '_') ;
     std::ostringstream stringStream;
     stringStream << " Progress |" << bar + "| " << std::to_string(percentage) << " %, loss = " << loss << " , acc = " << acc;
@@ -50,7 +50,7 @@ void Trainer::printProgress(float loss, float acc, long step){
 
 
 
-processBatch::processBatch(neural_net * net, Loss * loss, float rate): m_rate(rate), m_loss(loss) {
+processBatch::processBatch(neural_net * net, Loss * loss, float rate): m_loss(loss),  m_rate(rate) {
 
     std::vector<Layer*> NN_layers = net -> netLayers();
 
@@ -82,7 +82,7 @@ void processBatch::setRate(float rate){
 void processBatch::batchNormalise(MatrixXf & xdata) {
     float mu = xdata.mean();
     xdata = xdata.array() - mu;
-    float std = xdata.norm()/std::sqrt(xdata.size()-1);
+    float std = xdata.norm()/float(std::sqrt(xdata.size()-1));
     xdata /= std;
 }
 

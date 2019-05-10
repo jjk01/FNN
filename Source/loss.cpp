@@ -10,7 +10,7 @@ MatrixXf quadratic::error(const MatrixXf & prediction, const MatrixXf & target) 
 
 
 float quadratic::loss(const MatrixXf & prediction, const MatrixXf & target) {
-    float L = 0.5*(prediction - target).colwise().squaredNorm().mean();
+    float L = 0.5f*(prediction - target).colwise().squaredNorm().mean();
     return L;
 }
 
@@ -26,7 +26,7 @@ MatrixXf quadratic::error(const MatrixXf & prediction, const RowVectorXi & class
 float quadratic::loss (const MatrixXf & prediction, const RowVectorXi & classIndex) {
     MatrixXf err(prediction);
     for (unsigned n = 0; n < classIndex.size(); ++n) err(classIndex(n),n) -= 1;
-    float L = 0.5*err.colwise().squaredNorm().mean();
+    float L = 0.5f*err.colwise().squaredNorm().mean();
     return L;
 }
 

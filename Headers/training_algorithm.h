@@ -38,7 +38,7 @@ private:
 class Trainer {
 public:
 
-    Trainer(neural_net * , LossType, unsigned epochs = 25, unsigned batch_size = 32, float rate = 0.1);
+    Trainer(neural_net * , LossType, unsigned epochs = 25, unsigned batch_size = 32, float rate = 0.1f);
 
     template <class Tin, class Tout>
     void train(const MatrixBase<Tin> & xdata, const MatrixBase<Tout> & ydata);
@@ -88,13 +88,13 @@ template <class Tin, class Tout>
 void Trainer::train(const MatrixBase<Tin>& _xdata, const MatrixBase<Tout>& _ydata) {
     Tin  xdata(_xdata);
     Tout ydata(_ydata);
-    float loss;
+    float epoch_loss;
 
     for (long n = 0; n < m_epochs; ++n){
         shuffle(xdata,ydata);
         processEpoch(xdata,ydata);
-        loss = m_loss -> loss(xdata,ydata);
-        printProgress(loss,n);
+        epoch_loss = loss(xdata,ydata);
+        printProgress(epoch_loss,n);
     }
     std::cout << "Progress |" << std::string(50, '=') + ">| 100 %" << std::endl;
 }
