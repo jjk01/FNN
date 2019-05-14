@@ -42,7 +42,7 @@ int main(){
 
 
     neural_net N(784);
-    N.addDense(300);
+    N.addDense(150);
     N.addActivation(ActivationType::tanh);
     N.addDense(10);
 
@@ -56,7 +56,7 @@ int main(){
     MatrixXf Z = N.propagate(Xtest);
     std::cout << "start accuracy = " << accuracy(Z,Ytest) << "\n\n";
 
-    Trainer T(&N,LossType::cross_entropy_softmax,300,30,0.1f);
+    Trainer T(&N,LossType::cross_entropy_softmax,25,30,0.1f, true);
 
     double start =  std::clock();
     T.train(Xtrain,Ytrain, Xtest,Ytest,accuracy);

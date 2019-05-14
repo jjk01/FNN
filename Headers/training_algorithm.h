@@ -12,24 +12,25 @@ class Trainer;
 class processBatch {
 public:
     processBatch() = default;
-    processBatch(neural_net * , Loss *, float rate);
+    processBatch(neural_net * , Loss *, float rate, bool normalise = false);
 
     template <class Tin, class Tout>
     void iterate(const MatrixBase<Tin> & x, const MatrixBase<Tout> & y, unsigned start, unsigned batch_size);
 
     float getRate(void);
     void setRate(float rate);
+    void normalise(MatrixXf & xdata);
     
 private:
 
     MatrixXf forwardPropagate(const MatrixXf & xdata);
     void backPropagate(const MatrixXf & yerror);
-    void batchNormalise(MatrixXf & xdata);
 
     std::vector<std::unique_ptr<Gradient>> layers;
     Loss * m_loss = nullptr;
     MatrixXf X,Z,error;
     float m_rate;
+    bool m_normalise = false;
 };
 
 
@@ -38,7 +39,7 @@ private:
 class Trainer {
 public:
 
-    Trainer(neural_net * , LossType, unsigned epochs = 25, unsigned batch_size = 32, float rate = 0.1f);
+    Trainer(neural_net * , LossType, unsigned epochs = 25, unsigned batch_size = 32, float rate = 0.1f, bool batch_normalise = false);
 
     template <class Tin, class Tout>
     void train(const MatrixBase<Tin> & xdata, const MatrixBase<Tout> & ydata);
@@ -46,7 +47,7 @@ public:
     template <class Tin, class Tout>
     void train(const MatrixBase<Tin> & xtrain, const MatrixBase<Tout> & ytrain,
                const MatrixBase<Tin> & xval,   const MatrixBase<Tout> & yval,
-               float(*accuracy)(const Tin&, const Tout&) = nullptr);
+               float(*accuracy)(const MatrixXf&, const Tout&) = nullptr);
 
 private:
 
@@ -105,12 +106,14 @@ void Trainer::train(const MatrixBase<Tin>& _xdata, const MatrixBase<Tout>& _ydat
 template <class Tin, class Tout>
 void Trainer::train(const MatrixBase<Tin> & xtrain, const MatrixBase<Tout> & ytrain,
                     const MatrixBase<Tin> & xval,   const MatrixBase<Tout> & yval,
-                    float(*func)(const Tin&, const Tout&)) {
+                    float(*func)(const MatrixXf&, const Tout&)) {
 
     Tin  xdata(xtrain);
     Tout ydata(ytrain);
 
     float accuracy, epoch_loss, max_accuracy = 0;
+    MatrixXf xvalidation = xval.template cast<float>();
+    m_batch.normalise(xvalidation);
     MatrixXf prediction;
 
     for (long n = 0; n < m_epochs; ++n){
@@ -119,7 +122,7 @@ void Trainer::train(const MatrixBase<Tin> & xtrain, const MatrixBase<Tout> & ytr
         epoch_loss = loss(xdata,ydata);
 
         if (func != nullptr) {
-            prediction = m_net -> propagate(xval);
+            prediction = m_net -> propagate(xvalidation);
             accuracy = func(prediction,yval);
             printProgress(epoch_loss,accuracy,n);
         } else {
@@ -181,6 +184,7 @@ float Trainer::loss(const MatrixBase<Tin> & x, const MatrixBase<Tout> & y){
 template <class Tin, class Tout>
 void processBatch::iterate(const MatrixBase<Tin> & x, const MatrixBase<Tout> & y, unsigned start, unsigned batch_size) {
     X = x.block(0,start,x.rows(),batch_size). template cast<float> ();
+    if (m_normalise) normalise(X);
     Tout Y = y.block(0,start,y.rows(),batch_size);
     Z = forwardPropagate(X);
     error = m_loss -> error(Z,Y);

@@ -6,7 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-Trainer::Trainer(neural_net * net, LossType loss, unsigned epochs, unsigned batch_size, float rate):
+Trainer::Trainer(neural_net * net, LossType loss, unsigned epochs, unsigned batch_size, float rate, bool batch_normalise):
     m_epochs(epochs), m_batch_size(batch_size), m_net(net){
 
     optimal_parameters =  m_net -> Parameters();
@@ -20,7 +20,7 @@ Trainer::Trainer(neural_net * net, LossType loss, unsigned epochs, unsigned batc
             break;
     }
 
-    m_batch = processBatch(net,m_loss.get(),rate);
+    m_batch = processBatch(net,m_loss.get(),rate, batch_normalise);
 
 }
 
@@ -50,7 +50,7 @@ void Trainer::printProgress(float loss, float acc, long step){
 
 
 
-processBatch::processBatch(neural_net * net, Loss * loss, float rate): m_loss(loss),  m_rate(rate) {
+processBatch::processBatch(neural_net * net, Loss * loss, float rate, bool normalise): m_loss(loss),  m_rate(rate), m_normalise(normalise) {
 
     std::vector<Layer*> NN_layers = net -> netLayers();
 
@@ -79,7 +79,7 @@ void processBatch::setRate(float rate){
 }
 
 
-void processBatch::batchNormalise(MatrixXf & xdata) {
+void processBatch::normalise(MatrixXf & xdata) {
     float mu = xdata.mean();
     xdata = xdata.array() - mu;
     float std = xdata.norm()/float(std::sqrt(xdata.size()-1));
