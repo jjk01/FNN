@@ -8,12 +8,18 @@ using namespace Eigen;
 
 
 
-MatrixXf identity_function(const MatrixXf & x);
-MatrixXf sigmoid_function(const MatrixXf & x);
-MatrixXf tanh_function (const MatrixXf & x);
-MatrixXf ReLU_function (const MatrixXf & x);
-MatrixXf softmax_function (const MatrixXf & x);
+void identity_function(const MatrixXf& x, MatrixXf& y);
+void  sigmoid_function(const MatrixXf& x, MatrixXf& y);
+void     tanh_function(const MatrixXf& x, MatrixXf& y);
+void     ReLU_function(const MatrixXf& x, MatrixXf& y);
+void  softmax_function(const MatrixXf& x, MatrixXf& y);
 
+
+void identity_function(MatrixXf& );
+void  sigmoid_function(MatrixXf& );
+void     tanh_function(MatrixXf& );
+void     ReLU_function(MatrixXf& );
+void  softmax_function(MatrixXf& );
 
 
 #endif /* ACTIVATION_FUNCTIONS_H */

@@ -65,9 +65,8 @@ void neural_net::addDense(int Nout) {
 MatrixXf neural_net::propagate(const MatrixXf & x){
 
     MatrixXf y(x);
-
     for (auto i = layers.begin(); i != layers.end(); ++i){
-        y = (*i) -> feedForward(y);
+        (*i) -> feedForward(y);
     }
 
     return y;

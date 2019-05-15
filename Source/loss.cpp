@@ -33,13 +33,15 @@ float quadratic::loss (const MatrixXf & prediction, const RowVectorXi & classInd
 
 
 MatrixXf cross_entropy_softmax::error(const MatrixXf & prediction, const MatrixXf    & target) {
-    MatrixXf Y = softmax_function(prediction);
+    MatrixXf Y;
+    softmax_function(prediction,Y);
     return Y-target;
 }
 
 
 float cross_entropy_softmax::loss (const MatrixXf & prediction, const MatrixXf    & target) {
-    MatrixXf Y = softmax_function(prediction);
+    MatrixXf Y;
+    softmax_function(prediction,Y);
     Y = Y.array().log().matrix();
     float err = -(Y.cwiseProduct(target)).mean();
     err *= Y.rows();
@@ -49,7 +51,8 @@ float cross_entropy_softmax::loss (const MatrixXf & prediction, const MatrixXf  
 
 
 MatrixXf cross_entropy_softmax::error(const MatrixXf & prediction, const RowVectorXi    & classIndex) {
-    MatrixXf grad = softmax_function(prediction);
+    MatrixXf grad;
+    softmax_function(prediction,grad);
     for (unsigned n = 0; n < classIndex.size(); ++n) grad(classIndex(n),n) -= 1;
     grad /= classIndex.size();
     return grad;
@@ -58,7 +61,8 @@ MatrixXf cross_entropy_softmax::error(const MatrixXf & prediction, const RowVect
 
 
 float cross_entropy_softmax::loss (const MatrixXf & prediction, const RowVectorXi    & classIndex) {
-    MatrixXf grad = softmax_function(prediction);
+    MatrixXf grad;
+    softmax_function(prediction, grad);
     float err = 0;
     for (unsigned n = 0; n < classIndex.size(); ++n){
         err -= std::log(grad(classIndex(n),n));

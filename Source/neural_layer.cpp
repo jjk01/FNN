@@ -47,9 +47,16 @@ ActivationType ActivationLayer::funcType() {
 LayerType ActivationLayer::type(void) { return LayerType::activation;}
 
 
-MatrixXf ActivationLayer::feedForward(const MatrixXf & x) {
-    return fn(x);
+void ActivationLayer::feedForward(const MatrixXf & x, MatrixXf& y) {
+    y = x; // there will probably be an issue here. And below
+    fn(y);
 }
+
+
+void ActivationLayer::feedForward(MatrixXf& x) {
+    fn(x);
+}
+
 
 
 long ActivationLayer::inputSize() const {
@@ -116,11 +123,14 @@ const VectorXf & DenseLayer::bias() const {
 LayerType DenseLayer::type(void) { return LayerType::dense;}
 
 
-MatrixXf DenseLayer::feedForward(const MatrixXf & x) {
-    return (m_w*x).colwise() + m_b;
+void DenseLayer::feedForward(const MatrixXf & x, MatrixXf& y) {
+    y = (m_w*x).colwise() + m_b;
 }
 
-
+void DenseLayer::feedForward(MatrixXf& x) {
+    x = m_w*x;
+    x.colwise() += m_b;
+}
 
 long DenseLayer::inputSize() const{
     return m_w.cols();

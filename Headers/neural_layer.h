@@ -31,7 +31,8 @@ public:
     virtual ~Layer() = default;
 
     virtual LayerType type(void) = 0;
-    virtual MatrixXf feedForward(const MatrixXf &) = 0;
+    virtual void feedForward(const MatrixXf &, MatrixXf&) = 0;
+    virtual void feedForward(MatrixXf&) = 0;
     virtual std::unique_ptr<Layer> clone(Layer * _previous) = 0;
 
     virtual long inputSize() const = 0;
@@ -51,15 +52,15 @@ public:
     ActivationLayer(ActivationType _type, Layer * _previous = nullptr);
     std::unique_ptr<Layer> clone(Layer * _previous);
 
-    MatrixXf feedForward(const MatrixXf &);
-
+    void feedForward(const MatrixXf &, MatrixXf&);
+    void feedForward(MatrixXf&);
     LayerType type(void);
     ActivationType funcType();
     long inputSize() const;
     long outputSize() const;
 
 protected:
-    MatrixXf (*fn)(const MatrixXf&);
+    void (*fn)(MatrixXf&);
     ActivationType fn_type;
 };
 
@@ -75,7 +76,8 @@ public:
     std::unique_ptr<Layer> clone(Layer * _previous);
 
     LayerType type(void);
-    MatrixXf feedForward(const MatrixXf &);
+    void feedForward(const MatrixXf &, MatrixXf&);
+    void feedForward(MatrixXf&);
 
     void setParameters(const MatrixXf& w, const VectorXf & b);
     void update(const MatrixXf& dw, const VectorXf & db);

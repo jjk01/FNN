@@ -32,7 +32,7 @@ LayerType ActivationGradient::type() {
 
 const MatrixXf & ActivationGradient::feedForward(const MatrixXf & x) {
     input = x;
-    output = layer -> feedForward(x);
+    layer -> feedForward(x,output);
     return output;
 }
 
@@ -53,7 +53,7 @@ DenseGradient::DenseGradient(DenseLayer * _layer): layer(_layer){}
 
 const MatrixXf & DenseGradient::feedForward(const MatrixXf & x) {
     input = x;
-    output = layer -> feedForward(x);
+    layer -> feedForward(x,output);
     return output;
 }
 
